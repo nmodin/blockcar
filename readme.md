@@ -121,12 +121,23 @@ python3 blockcar.py --evaluate
 | `--max-price` | 60000 | Högsta pris i SEK |
 | `--max-age` | 1 | Max antal dagar sedan annonsen lades upp |
 | `--limit` | 10 | Max antal annonser att hämta |
+| `--location` | — | Filtrera på län (använd komma för flera) |
 
 ### Exempel med egna inställningar
 
+Sök i Stockholm och Uppsala:
 ```bash
-python3 blockcar.py --min-year 2013 --min-price 30000 --max-price 70000 --max-age 3 --limit 15 --evaluate
+python3 blockcar.py --location stockholm,uppsala --evaluate
 ```
+
+Sök i Skåne med anpassade priser:
+```bash
+python3 blockcar.py --location skane --min-year 2013 --min-price 30000 --max-price 70000 --max-age 3 --limit 15 --evaluate
+```
+
+### Tillgängliga län
+
+`stockholm`, `uppsala`, `sodermanland`, `ostergotland`, `jonkoping`, `kronoberg`, `kalmar`, `gotland`, `blekinge`, `skane`, `halland`, `vastra_gotaland`, `varmland`, `orebro`, `vastmanland`, `dalarna`, `gavleborg`, `vasternorrland`, `jamtland`, `vasterbotten`, `norrbotten`
 
 ---
 

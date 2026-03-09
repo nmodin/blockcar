@@ -252,7 +252,7 @@ Avsluta med en tydlig ranking:
 def main():
     """Huvudfunktion för att köra scrapern."""
     import argparse
-   
+
     parser = argparse.ArgumentParser(description="Sök efter bilar på Blocket")
     parser.add_argument("--demo", action="store_true", help="Kör med exempeldata")
     parser.add_argument("--evaluate", action="store_true", help="Skicka till Claude för utvärdering (kräver ANTHROPIC_API_KEY)")
@@ -261,20 +261,36 @@ def main():
     parser.add_argument("--min-price", type=int, default=20000, help="Lägsta pris i SEK (standard: 20000)")
     parser.add_argument("--max-price", type=int, default=60000, help="Högsta pris i SEK (standard: 60000)")
     parser.add_argument("--limit", type=int, default=10, help="Max antal resultat (standard: 10)")
+    parser.add_argument("--location", type=str, help="Filtrera på län (t.ex. stockholm, skane, vastra_gotaland). Använd komma för flera län.")
     args = parser.parse_args()
    
     print("🚗 Blocket Car Scraper")
     print("=" * 50)
-   
+
     scraper = BlocketCarScraper()
-   
+
+    # Parsa locations om angivet
+    locations = None
+    if args.location:
+        location_names = [loc.strip().upper() for loc in args.location.split(",")]
+        locations = []
+        for loc_name in location_names:
+            try:
+                locations.append(Location[loc_name])
+            except KeyError:
+                print(f"⚠️  Okänt län: {loc_name}")
+                print(f"   Tillgängliga län: {', '.join([l.name.lower() for l in Location])}")
+                return
+
     # Sök efter bilar med dina kriterier
     print("\n📍 Söker efter bilar...")
     print("   Kriterier:")
     print(f"   - Årsmodell: {args.min_year} och nyare")
     print(f"   - Pris: {args.min_price:,} - {args.max_price:,} SEK")
     print(f"   - Annons max {args.max_age} dag{'ar' if args.max_age != 1 else ''} gammal")
-   
+    if locations:
+        print(f"   - Län: {', '.join([l.name for l in locations])}")
+
     if args.demo:
         print("\n⚠️  Kör i DEMO-läge med exempeldata")
         raw_results = get_demo_data()
@@ -285,6 +301,7 @@ def main():
                 min_price=args.min_price,
                 max_price=args.max_price,
                 max_age_days=args.max_age,
+                locations=locations,
                 limit=args.limit
             )
         except Exception as e:
@@ -326,6 +343,7 @@ def main():
         print(f"\n🚙 {car.title}")
         print(f"   Pris: {car.price:,} SEK")
         print(f"   År: {car.year or 'N/A'} | Mil: {car.mileage or 'N/A'}")
+        print(f"   📍 {car.location or 'Plats ej angiven'}")
         print(f"   {car.seller_type}")
         print(f"   🔗 {car.url}")
    
