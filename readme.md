@@ -38,6 +38,7 @@ source venv/bin/activate
 pip install anthropic
 pip install blocket-api
 pip install python-dotenv
+pip install streamlit
 ```
 
 ---
@@ -84,25 +85,47 @@ source ~/.zshrc
 
 ## Användning
 
-### Testa med exempeldata (kräver ingen inloggning på Blocket)
+### 🎨 Webb-UI (Rekommenderat!)
+
+Starta det grafiska webb-gränssnittet:
+
+```bash
+source venv/bin/activate
+streamlit run app.py
+```
+
+UI:t öppnas automatiskt i din webbläsare på **http://localhost:8501**
+
+> **Tips:** Om du redan har aktiverat venv i terminalen kan du bara köra `streamlit run app.py`
+
+**Funktioner i UI:t:**
+- 🔍 Sökbara dropdowns för att välja län
+- 💰 Enkla sliders för pris och miltal
+- 📅 Filtrera på årsmodell och annonsålder
+- 🤖 Claude AI-integration med ett knapptryck
+- 📊 Snyggt visuellt resultat med bilder
+
+### 💻 Kommandorad
+
+#### Testa med exempeldata (kräver ingen inloggning på Blocket)
 
 ```bash
 python3 blockcar.py --demo
 ```
 
-### Testa med exempeldata + AI-utvärdering
+#### Testa med exempeldata + AI-utvärdering
 
 ```bash
 python3 blockcar.py --demo --evaluate
 ```
 
-### Riktig sökning på Blocket
+#### Riktig sökning på Blocket
 
 ```bash
 python3 blockcar.py
 ```
 
-### Riktig sökning med AI-utvärdering
+#### Riktig sökning med AI-utvärdering
 
 ```bash
 python3 blockcar.py --evaluate
@@ -110,7 +133,9 @@ python3 blockcar.py --evaluate
 
 ---
 
-## Flaggor och inställningar
+## Flaggor och inställningar (Kommandorad)
+
+Dessa flaggor används endast för kommandoradsversionen (`blockcar.py`). Webb-UI:t har grafiska kontroller istället.
 
 | Flagga | Standard | Beskrivning |
 |---|---|---|
@@ -123,7 +148,7 @@ python3 blockcar.py --evaluate
 | `--limit` | 10 | Max antal annonser att hämta |
 | `--location` | — | Filtrera på län (använd komma för flera) |
 
-### Exempel med egna inställningar
+### Exempel med egna inställningar (Kommandorad)
 
 Sök i Stockholm och Uppsala:
 ```bash
