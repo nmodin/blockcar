@@ -18,7 +18,7 @@ st.set_page_config(
 
 # Rubrik
 st.title("🚗 Blocket Car Scraper")
-st.markdown("Sök efter bilar på Blocket och få AI-drivna rekommendationer från Claude")
+st.markdown("Sök efter bilar på Blocket och få AI-drivna rekommendationer från Kodapan")
 
 # Sidebar för filter
 st.sidebar.header("🔍 Sökfilter")
