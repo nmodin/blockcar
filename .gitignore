@@ -1,0 +1,18 @@
+# Virtuell miljö
+venv/
+
+# API-nycklar och miljövariabler
+.env
+
+# Scriptets utdatafiler
+blocket_results.json
+claude_prompt.md
+claude_evaluation.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# macOS
+.DS_Store
