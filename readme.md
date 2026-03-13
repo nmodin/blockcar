@@ -178,6 +178,6 @@ Scriptet skapar tre filer när det körs:
 
 ---
 
-## Licens
+## License
 
-MIT
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
