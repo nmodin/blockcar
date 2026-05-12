@@ -6,7 +6,7 @@ Webb-gränssnitt för att söka efter bilar på Blocket och få AI-rekommendatio
 
 import streamlit as st
 from datetime import datetime
-from blocket_api import Location
+from blocket_api import Location, CarModel
 from blockcar import BlocketCarScraper, create_claude_prompt, evaluate_with_claude, CarListing
 
 # Konfigurera sidan
@@ -30,6 +30,15 @@ selected_locations = st.sidebar.multiselect(
     options=all_locations,
     default=None,
     help="Välj ett eller flera län att söka i (lämna tomt för hela Sverige)"
+)
+
+# Märke-filter (multiselect med sökning)
+all_brands = sorted([model.name.replace("_", " ").title() for model in CarModel])
+selected_brands = st.sidebar.multiselect(
+    "Välj märke/modell",
+    options=all_brands,
+    default=None,
+    help="Välj ett eller flera bilmärken att söka efter (lämna tomt för alla märken)"
 )
 
 # Pris-filter
@@ -125,6 +134,19 @@ if search_button:
                 st.error(f"Kunde inte hitta län: {loc_name}")
                 st.stop()
 
+    # Konvertera valda märken till CarModel-objekt
+    models = None
+    if selected_brands:
+        models = []
+        for brand_name in selected_brands:
+            # Konvertera tillbaka från display-namn till enum-namn
+            enum_name = brand_name.upper().replace(" ", "_")
+            try:
+                models.append(CarModel[enum_name])
+            except KeyError:
+                st.error(f"Kunde inte hitta märke: {brand_name}")
+                st.stop()
+
     # Validera filter
     if min_price > max_price:
         st.error("⚠️ Minsta pris kan inte vara högre än högsta pris!")
@@ -136,7 +158,7 @@ if search_button:
 
     # Visa sökkriterier
     st.subheader("📍 Söker efter bilar...")
-    criteria_cols = st.columns(4)
+    criteria_cols = st.columns(5)
     with criteria_cols[0]:
         st.metric("Årsmodell", f"{min_year}+")
     with criteria_cols[1]:
@@ -145,6 +167,8 @@ if search_button:
         st.metric("Miltal", f"{min_mileage:,}-{max_mileage:,} mil")
     with criteria_cols[3]:
         st.metric("Län", len(selected_locations) if selected_locations else "Hela Sverige")
+    with criteria_cols[4]:
+        st.metric("Märken", len(selected_brands) if selected_brands else "Alla")
 
     # Utför sökning
     with st.spinner("Söker på Blocket..."):
@@ -157,6 +181,7 @@ if search_button:
                 max_price=max_price,
                 max_age_days=max_age_days,
                 locations=locations,
+                models=models,
                 limit=limit
             )
         except Exception as e:
@@ -198,6 +223,20 @@ if search_button:
             else:
                 st.subheader("🤖 Claudes Utvärdering")
                 st.markdown(evaluation)
+
+                # Visa bilder för top 3
+                st.markdown("---")
+                st.markdown("### 📸 Bilder för top 3")
+                cols = st.columns(3)
+                for idx, (col, car) in enumerate(zip(cols, cars[:3])):
+                    with col:
+                        medal = ["🥇", "🥈", "🥉"][idx]
+                        st.markdown(f"**{medal} {car.title}**")
+                        if car.images:
+                            st.image(car.images[0], use_container_width=True)
+                        else:
+                            st.info("Ingen bild tillgänglig")
+                        st.link_button("🔗 Visa annons", car.url, use_container_width=True)
 
                 # Sparaknapp för utvärdering
                 st.download_button(
@@ -245,6 +284,7 @@ else:
 
     ### Tips:
     - Lämna län tomt för att söka i hela Sverige
+    - Filtrera på specifika bilmärken för mer relevanta resultat
     - Aktivera Claude AI för smarta rekommendationer
     - Justera miltalsintervallet för mer exakta resultat
     """)

@@ -92,21 +92,23 @@ class BlocketCarScraper:
         max_price: int = 60000,
         max_age_days: int | None = None,
         locations: list[Location] | None = None,
+        models: list | None = None,
         sort_order: CarSortOrder = CarSortOrder.PUBLISHED_DESC,
         limit: int = 20
     ) -> list[dict]:
         """
         Söker efter bilar med givna filter.
-       
+
         Args:
             min_year: Minsta årsmodell (standard: 2011)
             min_price: Lägsta pris i SEK (standard: 20000)
             max_price: Högsta pris i SEK (standard: 60000)
             max_age_days: Max antal dagar sedan annonsen publicerades (None = ingen gräns)
             locations: Lista med platser att söka i (standard: hela Sverige)
+            models: Lista med bilmärken att söka efter (standard: alla märken)
             sort_order: Sorteringsordning
             limit: Max antal resultat
-           
+
         Returns:
             Lista med bilannonser (rådata från API)
         """
@@ -116,10 +118,13 @@ class BlocketCarScraper:
             "year_from": min_year,
             "sort_order": sort_order,
         }
-       
+
         if locations:
             search_params["locations"] = locations
-       
+
+        if models:
+            search_params["models"] = models
+
         results = self.api.search_car(**search_params)
        
         ads = results.get("docs", [])
@@ -241,10 +246,10 @@ Här är bilarna:
 
 ---
 
-Avsluta med en tydlig ranking:
-🥇 **Bästa köpet:** [Bil] - [Kort motivering]
-🥈 **Näst bästa:** [Bil] - [Kort motivering]  
-🥉 **Tredje plats:** [Bil] - [Kort motivering]
+Avsluta med en tydlig ranking och inkludera länken till annonsen för varje bil i formatet [Visa annons](URL):
+🥇 **Bästa köpet:** [Bil] - [Kort motivering] - [Visa annons](URL)
+🥈 **Näst bästa:** [Bil] - [Kort motivering] - [Visa annons](URL)
+🥉 **Tredje plats:** [Bil] - [Kort motivering] - [Visa annons](URL)
 """
     return prompt
 
@@ -252,6 +257,7 @@ Avsluta med en tydlig ranking:
 def main():
     """Huvudfunktion för att köra scrapern."""
     import argparse
+    from blocket_api import CarModel
 
     parser = argparse.ArgumentParser(description="Sök efter bilar på Blocket")
     parser.add_argument("--demo", action="store_true", help="Kör med exempeldata")
@@ -262,6 +268,7 @@ def main():
     parser.add_argument("--max-price", type=int, default=60000, help="Högsta pris i SEK (standard: 60000)")
     parser.add_argument("--limit", type=int, default=10, help="Max antal resultat (standard: 10)")
     parser.add_argument("--location", type=str, help="Filtrera på län (t.ex. stockholm, skane, vastra_gotaland). Använd komma för flera län.")
+    parser.add_argument("--model", type=str, help="Filtrera på bilmärke (t.ex. volvo, bmw, audi). Använd komma för flera märken.")
     args = parser.parse_args()
    
     print("🚗 Blocket Car Scraper")
@@ -282,6 +289,19 @@ def main():
                 print(f"   Tillgängliga län: {', '.join([l.name.lower() for l in Location])}")
                 return
 
+    # Parsa models om angivet
+    models = None
+    if args.model:
+        model_names = [model.strip().upper() for model in args.model.split(",")]
+        models = []
+        for model_name in model_names:
+            try:
+                models.append(CarModel[model_name])
+            except KeyError:
+                print(f"⚠️  Okänt märke: {model_name}")
+                print(f"   Tillgängliga märken: {', '.join([m.name.lower() for m in CarModel][:20])}...")
+                return
+
     # Sök efter bilar med dina kriterier
     print("\n📍 Söker efter bilar...")
     print("   Kriterier:")
@@ -290,6 +310,8 @@ def main():
     print(f"   - Annons max {args.max_age} dag{'ar' if args.max_age != 1 else ''} gammal")
     if locations:
         print(f"   - Län: {', '.join([l.name for l in locations])}")
+    if models:
+        print(f"   - Märken: {', '.join([m.name for m in models])}")
 
     if args.demo:
         print("\n⚠️  Kör i DEMO-läge med exempeldata")
@@ -302,6 +324,7 @@ def main():
                 max_price=args.max_price,
                 max_age_days=args.max_age,
                 locations=locations,
+                models=models,
                 limit=args.limit
             )
         except Exception as e:
